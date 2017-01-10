@@ -1,0 +1,31 @@
+{
+  "name": "ai-chatbot",
+  "version": "1.0.0",
+  "description": "A test app to play with AI speech recognition technology using google speech to covert speech to text and Wit AI for natural language processing. Edit",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./bin/www",
+    "express-server": "DEBUG=message,router,log,wit,witSpeech,snowboy nodemon -w . -w www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/henrymunro/AI-Chatbot.git"
+  },
+  "author": "Henry Munro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/henrymunro/AI-Chatbot/issues"
+  },
+  "homepage": "https://github.com/henrymunro/AI-Chatbot#readme",
+  "dependencies": {
+    "debug": "^2.6.0",
+    "express": "^4.14.0",
+    "hjs": "0.0.6",
+    "node-pre-gyp": "^0.6.32",
+    "node-record-lpcm16": "^0.2.0",
+    "node-wit": "^4.2.0",
+    "nodemon": "^1.11.0",
+    "snowboy": "^1.1.0",
+    "sonus": "^0.1.4"
+  }
+}
