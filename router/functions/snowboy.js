@@ -1,4 +1,5 @@
 const debug = require('debug')('snowboy')
+const path = require ('path')
 
 
 debug('Loading in SNOWBOY')
@@ -9,17 +10,17 @@ debug('Loaded in detector')
 const Models = require('snowboy').Models;
 debug('Loaded in snowboy')
 
-
+debug('PATH: ', __dirname)
 const models = new Models();
 
 models.add({
-  file: 'resources/snowboy.umdl',
+  file: path.join(__dirname, 'resources/snowboy.umdl'),
   sensitivity: '0.5',
   hotwords : 'snowboy'
 });
 
 const detector = new Detector({
-  resource: "resources/common.res",
+  resource: path.join(__dirname, 'resources/common.res'),
   models: models,
   audioGain: 2.0
 });
@@ -42,7 +43,8 @@ detector.on('hotword', function (index, hotword) {
 
 const mic = record.start({
   threshold: 0,
-  verbose: true
+  verbose: true,
+  recordProgram: 'arecord'
 });
 
 mic.pipe(detector);
