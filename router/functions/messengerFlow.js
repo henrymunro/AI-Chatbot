@@ -4,7 +4,7 @@ const config = require('../config')
 
 const { sendTextMessage } = require('./messengerFunctions')
 const { sendRequestToWIT } = require('./witAI')
-const { sendDrinkOrderToBar, getPopularDrinksFromBar } = require('./externalIntegration')
+const { sendDrinkOrderToBar, getPopularDrinksFromBar } = require('./externalIntegration/EI_BarTender.js')
 
 
 
@@ -33,12 +33,14 @@ function receivedMessage(event) {
 
 	 switch (intent) {
 	 	case 'greeting':
-	 		sendTextMessage(senderID, 'Yo whats up!')
+	 		sendTextMessage(senderID, 'Yo! How can I help?')
+	 		break;
+	 	case 'identify':
+	 		identifyYourself(senderID)
 	 		break;
       	case 'order_drink':
         	orderDrink(senderID, attribute.drink);
         	break;
-
       	case 'recommend_drink':
         	reccomendDrink(senderID);
        		break;
@@ -54,35 +56,23 @@ function receivedMessage(event) {
 }
 
 
+// Function to display the purpose of this bot
+function identifyYourself(senderID){
+	debug('Identifying myself')
+	const identity = 'Hi im the RoboBarTender but you can call be Rob.'
+	const functions = 'Over the years I\'ve learnt to perform many cool actions. \n\nCurrently I can: \n - Make dope drinks \n - Send some news your way\n\n'
+	sendTextMessage(senderID, identity)
+	sendTextMessage(senderID, functions)
+
+
+}
+
 function orderDrink(senderID, drink){
 	debug('Ordering drink: ', drink)
 	sendDrinkOrderToBar(senderID, drink).then((response)=>{
-		const { drinkOrdered, message } = response
-
-		if(drinkOrdered){
-			// Drink has been sucessfully ordered
-			const messageResponse = drink + ' coming right up!'
-			sendTextMessage(senderID, messageResponse)
-		}else{
-			let messageResponse
-			switch (intent) {
-			 	case 'no_cup':
-			 		messageResponse = 'You need to put a cup in the bar!'
-			 		break;
-		      	case 'no_ingredients':
-		      		messageResponse = 'I\'m sorry I don\'t have the ingredients to make a '+drink+' now, '
-		        	break;
-
-		      	case 'bar_tender_off':
-		        	messageResponse = 'The bar tender is off, switch it on and i\'ll make you what ever you want...'
-		       		break;
-
-		      	default:
-		        	messageResponse = 'Sorry I can\'t make that right now'
-		    }
+		const { messageResponse } = response
+			// Send response to user based on order drink response (sucess or validation fail)
 		    sendTextMessage(senderID, messageResponse)
-		}
-
 	})
 }
 
