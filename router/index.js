@@ -2,12 +2,8 @@ var express = require('express')
 var router = require('./router')
 
 
-// var nodeWit = require('./functions/nodeWit')
-// var witSpeech = require('./functions/witSpeech')
-// var sonus = require('./functions/sonus_2')
-
-// var googleSpeech = require('./functions/googleSpeech')
-
+var messengerFunctions = require('./functions/messengerFunctions')
+var wit = require('./functions/witAI')
 
 
 module.exports = function (app) {
