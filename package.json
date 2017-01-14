@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./bin/www",
-    "express-server": "DEBUG=message,router,log,wit,messengerFlow,messengerFunctions,sonus,messenger,externalIntegration nodemon -w . -w www"
+    "express-server": "DEBUG=message,router,log,wit,messengerFlow,messengerFunctions,sonus,messenger,EI_BarTender,EI_News nodemon -w . -w www"
   },
   "repository": {
     "type": "git",

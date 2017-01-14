@@ -22,12 +22,14 @@ function sendRequestToWIT(messengerID, message){
 		client.converse('my-user-session-44', message, {})
 		.then((data) => {
 			const drink = ((data.entities||{}).drink||[{value:''}])[0].value
+			const news_type = ((data.entities||{}).news_type||[{value:''}])[0].value
 	        const intent = ((data.entities||{}).intent||[{value:''}])[0].value
 	        WITresponse = {
 	        	intent,
 	        	WITResponse: '',
 	        	attribute: {
-	        		drink
+	        		drink,
+	        		news_type
 	        	}
 	        }
 			// debug('INTENT: '+ intent)

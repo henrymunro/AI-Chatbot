@@ -5,6 +5,8 @@ const config = require('../config')
 const { sendTextMessage } = require('./messengerFunctions')
 const { sendRequestToWIT } = require('./witAI')
 const { sendDrinkOrderToBar, getPopularDrinksFromBar } = require('./externalIntegration/EI_BarTender.js')
+const { getNewsByType } = require('./externalIntegration/EI_newsAPI.js')
+
 
 
 
@@ -40,6 +42,9 @@ function receivedMessage(event) {
 	 		break;
       	case 'order_drink':
         	orderDrink(senderID, attribute.drink);
+        	break;
+        case 'get_news':
+        	getNews(senderID, attribute.news_type)
         	break;
       	case 'recommend_drink':
         	reccomendDrink(senderID);
@@ -84,6 +89,15 @@ function reccomendDrink(senderID){
 		
 		sendTextMessage(senderID, messageResponse)
 	})
+}
+
+function getNews(senderID, news_type){
+	debug('Getting news')
+	getNewsByType(senderID, news_type).then((response)=>{
+
+		sendTextMessage(senderID, response)
+	})
+
 }
 
 

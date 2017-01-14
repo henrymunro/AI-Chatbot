@@ -1,10 +1,10 @@
-const debug = require('debug')('externalIntegration')
+const debug = require('debug')('EI_BarTender')
 const config = require('../../config')
 const request = require('request')
 
 const { RoboBarTenderURL } = config.internal_API
 
-debug('Startup: Loading in EXTERNALINTEGRATION functions')
+debug('Startup: Loading in BARTENDER functions')
 
 
 
