@@ -3,13 +3,15 @@ const debug = require('debug')('wit')
 const {Wit, log} = require('node-wit')
 
 
+const config = require('../config.json')
+
 
 debug('Loading in WIT functions')
 
 
 
 
-const client = new Wit({accessToken: 'WD7T6CL6TYJICOOB3LHCHJY2B55H5BPZ'});
+const client = new Wit({accessToken: config.WIT_TOKEN});
 
 
 client.converse('my-user-session-44', 'make me a gin and tonic?', {})
