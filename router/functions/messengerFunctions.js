@@ -3,8 +3,6 @@ const request = require('request')
 const config = require('../config')
 
 
-const PAGE_ACCESS_TOKEN = config.messenger_PAGE_ACCESS_TOKEN
-
 debug('Startup: Loading in MESSENGERFUNCTIONS')
 
 
@@ -33,7 +31,7 @@ function callSendAPI(messageData) {
 	debug('Calling send API')
   request({
     uri: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: PAGE_ACCESS_TOKEN },
+    qs: { access_token: config.external_API.messenger_PAGE_ACCESS_TOKEN },
     method: 'POST',
     json: messageData
 

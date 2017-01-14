@@ -6,7 +6,7 @@ debug('Startup: Loading in WIT functions')
 
 
 
-const client = new Wit({accessToken: config.WIT_TOKEN});
+const client = new Wit({accessToken: config.external_API.WIT_TOKEN});
 
 
 
@@ -23,17 +23,17 @@ function sendRequestToWIT(messengerID, message){
 		.then((data) => {
 			const drink = ((data.entities||{}).drink||[{value:''}])[0].value
 	        const intent = ((data.entities||{}).intent||[{value:''}])[0].value
-	        response = {
-	        	intent: intent,
+	        WITresponse = {
+	        	intent,
 	        	WITResponse: '',
 	        	attribute: {
-	        		drink: drink
+	        		drink
 	        	}
 	        }
 			// debug('INTENT: '+ intent)
 			// debug('DRINK: '+ drink)
 			console.log(data.entities)
-			processWITResponse(message, response, resolve)
+			resolve({ message, WITresponse })
 		})
 		.catch(err=>{
 			debug('ERROR: ', err)
@@ -43,36 +43,6 @@ function sendRequestToWIT(messengerID, message){
 }
 
 
-function processWITResponse(message, response, resolve) {
-	const { intent, WITResponse, attribute } = response 
-	debug('Processing WIT Repsonse: ' + intent)
-
-	 switch (intent) {
-      	case 'order_drink':
-        	orderDrink(attribute.drink, resolve);
-        	break;
-
-      	case 'recommend_drink':
-        	reccomendDrink(resolve);
-       		break;
-
-      	default:
-        	resolve('default')
-    }
-}
-
-
-function orderDrink(drink, resolve){
-	debug('Ordering drink: ', drink)
-	const response = drink + ' coming right up!'
-	resolve(response)
-	
-}
-
-function reccomendDrink(resolve){
-	debug('Recommening drink')
-	resolve('You should order a rum and coke!')
-}
 
 
 
