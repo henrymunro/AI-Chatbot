@@ -2,9 +2,8 @@ var express = require('express')
 var router = require('./router')
 
 
-var messengerFunctions = require('./functions/messengerFunctions')
-var wit = require('./functions/witAI')
-
+const db = require('./functions/databaseConnection')
+const phycisNews = require('./functions/schemas/physicsNewsSchema')
 
 module.exports = function (app) {
   app.use('/messenger', require('./routes/messenger')),

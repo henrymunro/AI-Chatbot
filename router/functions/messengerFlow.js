@@ -2,10 +2,10 @@ const debug = require('debug')('messengerFlow')
 const config = require('../config')
 
 
-const { sendTextMessage } = require('./messengerFunctions')
+const { sendTextMessage, sendArticleMessage } = require('./messengerFunctions')
 const { sendRequestToWIT } = require('./witAI')
 const { sendDrinkOrderToBar, getPopularDrinksFromBar } = require('./externalIntegration/EI_BarTender.js')
-const { getNewsByType } = require('./externalIntegration/EI_newsAPI.js')
+const { getNewsByType, getFullNewsArticleText } = require('./externalIntegration/EI_newsAPI.js')
 
 
 
@@ -55,11 +55,30 @@ function receivedMessage(event) {
     }
   }).catch((err)=>{
   	debug('ERROR: ', err)
-  	sendTextMessage("I\'m sorry something went wrong")
+  	sendTextMessage(senderID, "I\'m sorry something went wrong")
   })
 
 }
 
+function postbackMessageFlow(event, payload){
+	var senderID = event.sender.id;
+	var recipientID = event.recipient.id;
+	var timeOfMessage = event.timestamp;
+	var message = event.message;
+	debug('Web post back recieved for '+ payload.type)
+	switch (payload.type) {
+      case 'VIEW_FULL_PHYSICS_ARTICLE':     
+        debug('Request recieved to view full article')               
+        const article_id = payload.article_id
+        getFullNewsArticleText(article_id).then((article)=>{
+	        sendTextMessage(senderID, article)
+        })
+        break;              
+
+      default:
+        sendTextMessage(senderID, 'default')
+    }
+}
 
 // Function to display the purpose of this bot
 function identifyYourself(senderID){
@@ -93,9 +112,12 @@ function reccomendDrink(senderID){
 
 function getNews(senderID, news_type){
 	debug('Getting news')
-	getNewsByType(senderID, news_type).then((response)=>{
-
-		sendTextMessage(senderID, response)
+	getNewsByType(senderID, news_type).then((articles)=>{
+		debug('Recieved articles, preparing to send to user')
+		articles.map((article, key)=>{
+			sendArticleMessage(senderID, article)
+			
+		})
 	})
 
 }
@@ -104,6 +126,7 @@ function getNews(senderID, news_type){
 
 
 module.exports = {
-	receivedMessage: receivedMessage
+	receivedMessage: receivedMessage,
+	postbackMessageFlow: postbackMessageFlow
 
 }

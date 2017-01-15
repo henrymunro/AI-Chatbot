@@ -14,17 +14,73 @@ function sendGenericMessage(recipientId, messageText) {
 
 function sendTextMessage(recipientId, messageText) {
   debug('Sending text message')
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      text: messageText
-    }
-  };
-  console.log(messageData)
+  // Splits string by max length accepted by API 
+  const splitString = chunkString(messageText, 630)
+  console.log(splitString)
+  splitString.map((messageTextSplit, key)=>{
+  	debug('LENGTH: ', messageTextSplit.length)
+	//set time out to try and conserver message order
+	setTimeout(()=>{
+		var messageData = {
+	    recipient: {
+	      id: recipientId
+	    },
+	    message: {
+	      text: messageTextSplit
+	    }
+	  };
+	  callSendAPI(messageData);  			
+	}, key*100)
+	  
+  })
 
-  callSendAPI(messageData);
+}
+
+function chunkString(str, len) {
+  var _size = Math.ceil(str.length/len),
+      _ret  = new Array(_size),
+      _offset
+  ;
+
+  for (var _i=0; _i<_size; _i++) {
+    _offset = _i * len;
+    _ret[_i] = str.substring(_offset, _offset + len);
+  }
+
+  return _ret;
+}
+
+function sendArticleMessage(senderID, article) {
+	debug('Sending article message')
+  	messageData = {
+	    recipient: {
+	      id: senderID
+	    },
+	    message: {
+	    attachment:{
+	          	type:"template",
+	          	payload:{
+		            template_type:"generic",
+		            elements:[{
+		              	image_url:article.main_image,
+		                title:article.title,
+			        	"buttons":[
+				            {
+				                "type":"web_url",
+				                "url":article.url,
+				                "title":"View Article"
+				             },{
+				                "type":"postback",
+				                "title":"Read Here",
+				                "payload":JSON.stringify({ type: "VIEW_FULL_PHYSICS_ARTICLE", article_id: article._id})
+				            }              
+			            ]     
+		            }]
+	       		}
+	        }
+	    }
+ 	}  
+  callSendAPI(messageData)
 }
 
 function callSendAPI(messageData) {
@@ -52,6 +108,7 @@ function callSendAPI(messageData) {
 
 
 module.exports = {
-	sendTextMessage: sendTextMessage
+	sendTextMessage: sendTextMessage,
+	sendArticleMessage: sendArticleMessage
 
 }

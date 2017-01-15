@@ -4,7 +4,7 @@ const request = require('request')
 const config = require('../config.json')
 
 
-const receivedMessage = require('../functions/messengerFlow').receivedMessage
+const { receivedMessage, postbackMessageFlow } = require('../functions/messengerFlow')
 
 
 //Load in router class
@@ -45,10 +45,16 @@ router.post('/webhook', function (req, res) {
 
         // Iterate over each messaging event
         entry.messaging.forEach(function(event) {
+          const sentPayload = ((event||{}).postback||{}).payload
+          const payload = JSON.parse(sentPayload||'{}')
+          console.log('PAYLOADDD: ', payload)
           if (event.message) {
             receivedMessage(event);
+          } else if(payload.type) {              
+              debug('SENFING ')
+              postbackMessageFlow(event, payload)
           } else {
-            console.log("Webhook received unknown event: ", event);
+            console.log("Webhook received unknown event: ", event)          
           }
         });
       });
