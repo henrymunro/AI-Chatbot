@@ -4,7 +4,7 @@ const config = require('../config')
 
 const { sendTextMessage, sendArticleMessage } = require('./messengerFunctions')
 const { sendRequestToWIT } = require('./witAI')
-const { sendDrinkOrderToBar, getPopularDrinksFromBar } = require('./externalIntegration/EI_BarTender.js')
+const { sendDrinkOrderToBar, getPopularDrinksFromBar, killAllPumps } = require('./externalIntegration/EI_BarTender.js')
 const { getNewsByType, getFullNewsArticleText } = require('./externalIntegration/EI_newsAPI.js')
 
 
@@ -29,6 +29,20 @@ function receivedMessage(event) {
   var messageText = message.text;
   var messageAttachments = message.attachments;
 
+  // Master route to shut down the pumps of the RoboBarTender
+  if (messageText.toLowerCase() == 'kill pumps' || messageText.toLowerCase() == 'kill pump'){
+  	sendTextMessage(senderID, 'Attempting to kill pumps now')
+  	killAllPumps().then((res)=>{
+  		sendTextMessage(senderID, res)
+  	}).catch((err)=>{
+  		sendTextMessage(senderID, err)
+  		sendTextMessage(senderID, 'Trying to kill pumps again')
+  		killAllPumps().then((res)=>{sendTextMessage(senderID, res)})
+  						.catch((err)=>{sendTextMessage(senderID, err)})
+  	})
+  	return 
+  }
+
   sendRequestToWIT(senderID, messageText).then((response)=>{
   	const { intent, WITResponse, attribute } = response.WITresponse
 	debug('Processing WIT Repsonse: ' + intent)
@@ -51,7 +65,7 @@ function receivedMessage(event) {
        		break;
 
       	default:
-        	sendTextMessage(senderID, 'default')
+        	sendTextMessage(senderID, 'I\'m sorry I didn\'t understand that, please try again')
     }
   }).catch((err)=>{
   	debug('ERROR: ', err)
