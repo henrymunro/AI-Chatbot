@@ -2,7 +2,7 @@ const debug = require('debug')('EI_BarTender')
 const config = require('../../config')
 const request = require('request')
 
-const { RoboBarTenderURL, RoboBarTenderKillPumps } = config.internal_API
+const { RoboBarTenderURL, RoboBarTenderKillPumps, RoboBarTenderGetDrinks } = config.internal_API
 
 debug('Startup: Loading in BARTENDER functions')
 
@@ -22,12 +22,14 @@ function sendDrinkOrderToBar(senderID, drink){
 			body = JSON.parse(body)
 			const { orderPlaced, msg, errorMessage } = body
 
-			let messageResponse
+			let messageResponse, drinkOrdered
 			if(orderPlaced){
 				// Drink has been sucessfully ordered
 				messageResponse = drink + ' coming right up!'
+				drinkOrdered = true
 			}else{
 				// Drink not sucessfully ordered
+				drinkOrdered = false
 				switch (msg.trim()) {
 					default:
 			        	messageResponse = 'Sorry I can\'t make that right now'
@@ -55,20 +57,52 @@ function sendDrinkOrderToBar(senderID, drink){
 			    }
 			}
 			
-			resolve({ messageResponse })
+			resolve({ messageResponse, drinkOrdered })
 		})
 
 
 	})
 }
 
+
 function getPopularDrinksFromBar(senderID){
 	return new Promise((resolve, reject)=>{
 		debug('Getting popular drinks from RoboBarTender')
 
-		resolve({drinks:['mallie and callie']})
+		request.get(RoboBarTenderGetDrinks, (err, httpResponse, body)=>{
+			// Error sent by request
+			if (err){
+				debug('ERROR: ', err)
+				reject('Error getting drinks')
+			} else if( httpResponse.statusCode != 200){
+				// This covers if we redirect to RoboBarTender doesn't work
+				debug('Cant connect to RoboBarTender')
+				reject('Cant connect to RoboBarTener')
+			} else {
+				const defaultImage = 'default.jpg'
+				let drinks = JSON.parse(body)
+				drinks = drinks.sort( function() { return 0.5 - Math.random() } )
+				drinks = drinks.slice(0,4)
+				const listElements = drinks.map((drink, key)=>{
+					return  {
+	                    title: drink.DrinkName,
+	                    // subtitle: drink.DrinkDescription,
+	                    image_url: 'https://henrymunro.com/RoboBarTender/images/' + (drink.DrinkImage==''?defaultImage:drink.DrinkImage),
+	                    buttons: [
+		                        {
+		                           "title": "Order",
+				                    "type": "postback",
+				                    "payload": JSON.stringify({ type: "ORDER_DRINK", Drink_id: drink.DrinkName})                        
+		                        }
+		                    ]   
+               		}					
+				})	
+				resolve(listElements)
+			}	
+		})
 	})
 }
+
 
 
 function killAllPumps(){
@@ -103,3 +137,5 @@ module.exports = {
 	getPopularDrinksFromBar: getPopularDrinksFromBar,
 	killAllPumps: killAllPumps 
 }
+
+

@@ -2,7 +2,7 @@ const debug = require('debug')('messengerFlow')
 const config = require('../config')
 
 
-const { sendTextMessage, sendArticleMessage } = require('./messengerFunctions')
+const { sendTextMessage, sendArticleMessage, sendListMessage, sendButtonMessage } = require('./messengerFunctions')
 const { sendRequestToWIT } = require('./witAI')
 const { sendDrinkOrderToBar, getPopularDrinksFromBar, killAllPumps } = require('./externalIntegration/EI_BarTender.js')
 const { getNewsByType, getFullNewsArticleText } = require('./externalIntegration/EI_newsAPI.js')
@@ -32,14 +32,7 @@ function receivedMessage(event) {
   // Master route to shut down the pumps of the RoboBarTender
   if (messageText.toLowerCase() == 'kill pumps' || messageText.toLowerCase() == 'kill pump'){
   	sendTextMessage(senderID, 'Attempting to kill pumps now')
-  	killAllPumps().then((res)=>{
-  		sendTextMessage(senderID, res)
-  	}).catch((err)=>{
-  		sendTextMessage(senderID, err)
-  		sendTextMessage(senderID, 'Trying to kill pumps again')
-  		killAllPumps().then((res)=>{sendTextMessage(senderID, res)})
-  						.catch((err)=>{sendTextMessage(senderID, err)})
-  	})
+  	attemptGracefulPumpShutDown(senderID)
   	return 
   }
 
@@ -87,7 +80,15 @@ function postbackMessageFlow(event, payload){
         getFullNewsArticleText(article_id).then((article)=>{
 	        sendTextMessage(senderID, article)
         })
-        break;              
+        break;      
+      case 'ORDER_DRINK':     
+        debug('Request recieved to order drink')               
+        const Drink_id = payload.Drink_id
+       	orderDrink(senderID, Drink_id)
+        break;     
+      case 'KILL_PUMPS':
+      	attemptGracefulPumpShutDown(senderID)
+      	break;      
 
       default:
         sendTextMessage(senderID, 'default')
@@ -108,19 +109,35 @@ function identifyYourself(senderID){
 function orderDrink(senderID, drink){
 	debug('Ordering drink: ', drink)
 	sendDrinkOrderToBar(senderID, drink).then((response)=>{
-		const { messageResponse } = response
-			// Send response to user based on order drink response (sucess or validation fail)
-		    sendTextMessage(senderID, messageResponse)
+		const { messageResponse, drinkOrdered } = response
+			if(!drinkOrdered){
+				// Send response to user based on order drink response (sucess or validation fail)
+			    sendTextMessage(senderID, messageResponse)
+			} else {
+			    const buttons = [
+			          {
+			            "type":"postback",
+			            "title":"Cancel",
+			            "payload":JSON.stringify({ type: "KILL_PUMPS"})
+			          }
+			        ]
+			    sendButtonMessage(senderID, messageResponse, buttons)
+			}
+
+	}).catch((err)=>{
+		debug('ERROR: '+ err)
+		sendTextMessage(senderID, 'I\'m sorry an error has occoured')
 	})
 }
 
 function reccomendDrink(senderID){
 	debug('Recommening drink')
-	getPopularDrinksFromBar(senderID).then((response)=>{
-		const { drinks } = response 
-		const messageResponse = 'The ' + drinks[0] + ' is crushing it today!'
-		
-		sendTextMessage(senderID, messageResponse)
+	getPopularDrinksFromBar(senderID).then((listElements)=>{
+		debug('Got drink recommendation sending to response handler')		
+		sendListMessage(senderID, listElements)
+	}).catch((err)=>{
+		debug('ERROR: '+ err)
+		sendTextMessage(senderID, 'Sorry for some reason I can connect to the Robo Bar Tender')
 	})
 }
 
@@ -134,6 +151,19 @@ function getNews(senderID, news_type){
 		})
 	})
 
+}
+
+function attemptGracefulPumpShutDown(senderID){
+	debug('Attempting graceful pump shutdown')
+	killAllPumps().then((res)=>{
+  		sendTextMessage(senderID, res)
+  	}).catch((err)=>{
+  		sendTextMessage(senderID, err)
+  		sendTextMessage(senderID, 'Trying to kill pumps again')
+  		killAllPumps().then((res)=>{sendTextMessage(senderID, res)})
+  						.catch((err)=>{sendTextMessage(senderID, err)})
+
+  	})
 }
 
 

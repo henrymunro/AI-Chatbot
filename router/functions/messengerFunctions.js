@@ -52,7 +52,7 @@ function chunkString(str, len) {
 
 function sendArticleMessage(senderID, article) {
 	debug('Sending article message')
-  	messageData = {
+  	const messageData = {
 	    recipient: {
 	      id: senderID
 	    },
@@ -83,6 +83,57 @@ function sendArticleMessage(senderID, article) {
   callSendAPI(messageData)
 }
 
+function sendButtonMessage(senderID, text, buttons){
+	debug('Sending button message')
+  	const messageData = {
+	    recipient: {
+	      id: senderID
+	    },
+	    message: {
+	    attachment:{
+	          	type:"template",
+	          	payload:{
+		            template_type:"button",
+		            text: text,
+			        buttons: buttons
+	       		}
+	        }
+	    }
+ 	}  
+  callSendAPI(messageData)
+
+}
+
+
+function sendListMessage(senderID, listElements){
+	debug('Constructing list message')
+	const messageData = {
+	    recipient: {
+	      id: senderID
+	    },
+	    message: {
+	    attachment:{
+	          	type:"template",
+	          	 "payload": {
+	          	 	template_type: "list",
+	          	 	elements: listElements,
+	          	 	// buttons: [
+		            //     {
+		            //         "title": "View More",
+		            //         "type": "postback",
+		            //         "payload": "payload"                        
+		            //     }
+		            // ]  
+	          	 }
+	        }
+	        
+	    }
+ 	}  
+  callSendAPI(messageData) 
+}
+
+
+
 function callSendAPI(messageData) {
 	debug('Calling send API')
   request({
@@ -109,6 +160,8 @@ function callSendAPI(messageData) {
 
 module.exports = {
 	sendTextMessage: sendTextMessage,
-	sendArticleMessage: sendArticleMessage
+	sendArticleMessage: sendArticleMessage,
+	sendListMessage: sendListMessage,
+	sendButtonMessage: sendButtonMessage
 
 }
